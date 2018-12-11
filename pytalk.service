@@ -7,7 +7,7 @@ Type=simple
 Restart=always
 RestartSec=1
 User=pi
-ExecStart=/usr/bin/python /home/pi/pytalk/pytalk.py
+ExecStart=/usr/bin/python /home/pi/PyTalk/pytalk.py
 
 [Install]
 WantedBy=multi-user.target
