@@ -2,9 +2,8 @@ wget http://dvswitch.org/install-allstarlink-repository
 chmod +x install-allstarlink-repository
 sudo ./install-allstarlink-repository
 sudo apt-get update
-sudo apt-get upgrade
-sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-pyaudio python3-pyaudio python-gpiozero
-sudo apt install python-gpiozero
+sudo apt-get -y upgrade
+sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-pyaudio python3-pyaudio python-gpiozero pulseaudio  python-gpiozero
 chmod +x tune.sh
 chmod +x vol.sh
 
