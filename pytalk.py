@@ -23,6 +23,12 @@ import thread
 import shlex
 import pyaudio
 from gpiozero import LED, Button
+from numpy import linspace,sin,pi,int16
+
+def note(freq, len, amp=1, rate=8000):
+ t = linspace(0,len,len*rate)
+ data = sin(2*pi*freq*t)*amp
+ return data.astype(int16) 
 
 ipAddress = "127.0.0.1"
 led = LED(25)
@@ -50,7 +56,12 @@ def rxAudioStream():
     def play(data):
      if data == '':
         data = silence
-     stream.write(audio,160)    
+     stream.write(audio,160)
+    
+    def tones():
+       stream.write(note(900, .2, amp=1000, rate=RATE))
+       stream.write(note(600, .2, amp=1000, rate=RATE))
+    
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     udp.bind(("", 32001))
@@ -86,6 +97,7 @@ def rxAudioStream():
                     if keyup:
                         start_time = time()
                     if keyup == False:
+                        tones(); 
                         print '{} {} {} {} {} {} {:.2f}s'.format(
                                                                     strftime(" %m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
