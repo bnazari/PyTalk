@@ -21,7 +21,7 @@ import socket
 import struct
 import thread
 import shlex
-import pyaudio
+import alsaaudio 
 from gpiozero import LED, Button
 from numpy import linspace,sin,pi,int16
 
@@ -33,35 +33,19 @@ def note(freq, len, amp=1, rate=8000):
 ipAddress = "127.0.0.1"
 led = LED(25)
 button = Button(23)
-
-
 silence = chr(0)* 2048
-
 
 def rxAudioStream():
     global ipAddress
     print('Start audio thread')
     
-    FORMAT = pyaudio.paInt16
-    CHUNK =1024 
-    CHANNELS = 1
-    RATE = 8000
-    
-    stream = p.open(format=FORMAT,
-                    channels = CHANNELS,
-                    rate = RATE,
-                    output = True,
-                    frames_per_buffer = CHUNK,
-                    )
-    def play(data):
-     if data == '':
-        data = silence
-     stream.write(audio,160)
-    
+    p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+    p.setrate(8000)
+    p.setchannels(1)  
+
     def tones():
-       stream.write(note(900, .2, amp=1000, rate=RATE))
-       stream.write(note(600, .2, amp=1000, rate=RATE))
-    
+       p.write(note(900, .2, amp=1000, rate=8000))
+       p.write(note(600, .2, amp=1000, rate=8000))
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     udp.bind(("", 32001))
@@ -91,14 +75,15 @@ def rxAudioStream():
                 #print(eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, audio, len(audio), len(soundData))
                 if (len(audio) == 320):
                     # stream.write(audio,160)
-                    play(audio)
+                    p.write(audio)
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
                         start_time = time()
                     if keyup == False:
-                        tones(); 
-                        print '{} {} {} {} {} {} {:.2f}s'.format(
+                       if (time() - start_time)>=1.2:
+                         tones(); 
+                       print '{} {} {} {} {} {} {:.2f}s'.format(
                                                                     strftime(" %m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
                                                                     call, rxslot, tg, loss, time() - start_time)
@@ -116,23 +101,16 @@ def rxAudioStream():
     udp.close()
 
 def txAudioStream():
-    FORMAT = pyaudio.paInt16
-    CHUNK = 160
-    CHANNELS = 1
-    RATE = 8000
-    
-    stream = p.open(format=FORMAT,
-                    channels = CHANNELS,
-                    rate = RATE,
-                    input = True,
-                    frames_per_buffer = CHUNK,
-                    )
+    q.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+    q.setrate(8000)
+    q.setchannels(1)  
+
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     lastPtt = ptt
     seq = 0
     while True:
         try:
-            audio = stream.read(160, exception_on_overflow=False)
+            audio = q.read()
             if ptt != lastPtt:
                 usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
                 udp.sendto(usrp, (ipAddress, 34001))
@@ -147,11 +125,14 @@ def txAudioStream():
         except:
             print("overflow")
 
+
 ptt = False     # toggle this to transmit (left up to you)
 
-p = pyaudio.PyAudio()
+p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
+q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
+
 thread.start_new_thread( rxAudioStream, () )
-thread.start_new_thread( txAudioStream, () )
+# thread.start_new_thread( txAudioStream, () )
 
 while True:
     if button.is_pressed:
