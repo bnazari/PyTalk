@@ -22,7 +22,6 @@ import struct
 import thread
 import shlex
 import alsaaudio 
-from gpiozero import LED, Button
 from numpy import linspace,sin,pi,int16
 
 def note(freq, len, amp=1, rate=8000):
@@ -31,8 +30,7 @@ def note(freq, len, amp=1, rate=8000):
  return data.astype(int16) 
 
 ipAddress = "127.0.0.1"
-led = LED(25)
-button = Button(23)
+
 silence = chr(0)* 2048
 
 def rxAudioStream():
@@ -128,17 +126,11 @@ def txAudioStream():
 
 ptt = False     # toggle this to transmit (left up to you)
 
-p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
-q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
+p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
+q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
 
 thread.start_new_thread( rxAudioStream, () )
 # thread.start_new_thread( txAudioStream, () )
 
 while True:
-    if button.is_pressed:
-        led.on()
-        ptt=True
-    else:
-        led.off()
-        ptt=False
     sleep(0.02)
