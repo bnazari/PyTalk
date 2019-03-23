@@ -1,19 +1,4 @@
 #!/usr/bin/python
-###################################################################################
-# Copyright (C) 2014, 2015, 2016, 2017, 2018 N4IRR
-#
-# Permission to use, copy, modify, and/or distribute this software for any
-# purpose with or without fee is hereby granted, provided that the above
-# copyright notice and this permission notice appear in all copies.
-#
-# THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
-# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
-# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
-# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-# PERFORMANCE OF THIS SOFTWARE.
-###################################################################################
 
 from time import time, sleep, clock, localtime, strftime
 from random import randint
@@ -39,8 +24,8 @@ def rxAudioStream():
     
     p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
     p.setrate(8000)
-    p.setchannels(1)  
-
+    p.setchannels(1)
+    p.setperiodsize(160)
     def tones():
        p.write(note(900, .2, amp=1000, rate=8000))
        p.write(note(600, .2, amp=1000, rate=8000))
@@ -72,13 +57,14 @@ def rxAudioStream():
                 audio = soundData[32:]
                 #print(eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, audio, len(audio), len(soundData))
                 if (len(audio) == 320):
-                    # stream.write(audio,160)
                     p.write(audio)
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
                         start_time = time()
+                        p.pause(enable=False)
                     if keyup == False:
+                       p.pause(enable=True)
                        if (time() - start_time)>=1.2:
                          tones(); 
                        print '{} {} {} {} {} {} {:.2f}s'.format(
