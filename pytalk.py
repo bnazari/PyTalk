@@ -13,19 +13,16 @@ def note(freq, len, amp=1, rate=8000):
  t = linspace(0,len,len*rate)
  data = sin(2*pi*freq*t)*amp
  return data.astype(int16) 
-
+bt_up = false
+idle_time = time()
 ipAddress = "127.0.0.1"
 
-silence = chr(0)* 2048
+silence = chr(0)* 32000
 
 def rxAudioStream():
     global ipAddress
     print('Start audio thread')
     
-    p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-    p.setrate(8000)
-    p.setchannels(1)
-    p.setperiodsize(160)
     def tones():
        p.write(note(900, .2, amp=1000, rate=8000))
        p.write(note(600, .2, amp=1000, rate=8000))
@@ -55,23 +52,30 @@ def rxAudioStream():
             audio = soundData[32:]
             if (type == 0): # voice
                 audio = soundData[32:]
-                #print(eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, audio, len(audio), len(soundData))
-                if (len(audio) == 320):
-                    p.write(audio)
+#                print(eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, len(audio), len(soundData))
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
-                        start_time = time()
-                        p.pause(enable=False)
+                      if bt_up == false:
+                        p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
+                        p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+                        p.setrate(8000)
+                        p.setchannels(1)
+                        p.setperiodsize(160)
+                        bt_up = true
+                      p.write(silence)
+                      start_time = time()
                     if keyup == False:
-                       p.pause(enable=True)
                        if (time() - start_time)>=1.2:
-                         tones(); 
+                         tones();
                        print '{} {} {} {} {} {} {:.2f}s'.format(
-                                                                    strftime(" %m/%d/%y", localtime(start_time)),
+                                                                    strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
                                                                     call, rxslot, tg, loss, time() - start_time)
+                    idle_time = time()
                     lastKey = keyup
+                if (len(audio) == 320):
+                    p.write(audio)
             if (type == 2): #metadata
                 audio = soundData[32:]
                 if ord(audio[0]) == 8:
@@ -112,11 +116,14 @@ def txAudioStream():
 
 ptt = False     # toggle this to transmit (left up to you)
 
-p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
-q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
+# q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
 
 thread.start_new_thread( rxAudioStream, () )
 # thread.start_new_thread( txAudioStream, () )
 
 while True:
+    if bt_up == true:
+      (time() - idle_time)>=5:
+         p.close()
+         bt_up = false
     sleep(0.02)
