@@ -43,6 +43,7 @@ def rxAudioStream():
         except socket.timeout:
            if (bt_up==True):
               if (time() - idle_time >=5):
+                 print('Release BT')
                  p.close
                  bt_up==False
            continue
@@ -71,6 +72,7 @@ def rxAudioStream():
                         p.setchannels(1)
                         p.setperiodsize(160)
                         bt_up = True
+                        print('Attach BT')
                       p.write(silence)
                       start_time = time()
                     if keyup == False:
