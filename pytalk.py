@@ -13,7 +13,7 @@ def note(freq, len, amp=1, rate=8000):
  t = linspace(0,len,len*rate)
  data = sin(2*pi*freq*t)*amp
  return data.astype(int16) 
-bt_up = false
+bt_up = False
 idle_time = time()
 ipAddress = "127.0.0.1"
 
@@ -56,13 +56,13 @@ def rxAudioStream():
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
-                      if bt_up == false:
+                      if bt_up == False:
                         p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
                         p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
                         p.setrate(8000)
                         p.setchannels(1)
                         p.setperiodsize(160)
-                        bt_up = true
+                        bt_up = True
                       p.write(silence)
                       start_time = time()
                     if keyup == False:
@@ -122,8 +122,8 @@ thread.start_new_thread( rxAudioStream, () )
 # thread.start_new_thread( txAudioStream, () )
 
 while True:
-    if bt_up == true:
-      (time() - idle_time)>=5:
+    if bt_up == True:
+      if (time() - idle_time)>=5:
          p.close()
-         bt_up = false
+         bt_up = False
     sleep(0.02)
