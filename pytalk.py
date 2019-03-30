@@ -45,6 +45,7 @@ def rxAudioStream():
               if (time() - idle_time >=5):
                  p.close
                  bt_up==False
+           continue
         soundData, addr = udp.recvfrom(1024)
         if addr[0] != ipAddress:
             ipAddress = addr[0]
