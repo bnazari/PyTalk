@@ -56,7 +56,7 @@ def rxAudioStream():
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
-                      if bt_up == False:
+#                       if bt_up == False:
                         p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
                         p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
                         p.setrate(8000)
