@@ -46,7 +46,6 @@ def rxAudioStream():
                  p.close
                  bt_up==False
            continue
-        soundData, addr = udp.recvfrom(1024)
         if addr[0] != ipAddress:
             ipAddress = addr[0]
         if (soundData[0:4] == 'USRP'):
