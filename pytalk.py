@@ -45,7 +45,7 @@ def rxAudioStream():
               if (time() - idle_time >=5):
                  print('Release BT')
                  p.close
-                 bt_up==False
+                 bt_up=False
            continue
         if addr[0] != ipAddress:
             ipAddress = addr[0]
