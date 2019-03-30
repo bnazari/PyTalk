@@ -13,7 +13,6 @@ def note(freq, len, amp=1, rate=8000):
  t = linspace(0,len,len*rate)
  data = sin(2*pi*freq*t)*amp
  return data.astype(int16) 
-bt_up = False
 idle_time = time()
 ipAddress = "127.0.0.1"
 
@@ -29,6 +28,7 @@ def rxAudioStream():
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     udp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     udp.bind(("", 32001))
+    udp.settimeout(.2)
     bt_up = False
     lastKey = -1
     start_time = time()
@@ -37,6 +37,14 @@ def rxAudioStream():
     loss = '0.00%'
     rxslot = '0'
     while True:
+       
+        try:
+          soundData, addr = udp.recvfrom(1024)
+        except socket.timeout:
+           if (bt_up==True):
+              if (time() - idle_time >=5):
+                 p.close
+                 bt_up==False
         soundData, addr = udp.recvfrom(1024)
         if addr[0] != ipAddress:
             ipAddress = addr[0]
@@ -66,8 +74,8 @@ def rxAudioStream():
                       p.write(silence)
                       start_time = time()
                     if keyup == False:
-                       if (time() - start_time)>=1.2:
-                         tones();
+#                       if (time() - start_time)>=1.2:
+#                         tones();
                        print '{} {} {} {} {} {} {:.2f}s'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
@@ -122,8 +130,4 @@ thread.start_new_thread( rxAudioStream, () )
 # thread.start_new_thread( txAudioStream, () )
 
 while True:
-    if bt_up == True:
-      if (time() - idle_time)>=5:
-         p.close()
-         bt_up = False
     sleep(0.02)
