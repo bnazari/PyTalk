@@ -73,7 +73,7 @@ def rxAudioStream():
                         p.setperiodsize(160)
                         bt_up = True
                         print('Attach BT')
-                      p.write(silence)
+#                       p.write(silence)
                       start_time = time()
                     if keyup == False:
 #                       if (time() - start_time)>=1.2:
