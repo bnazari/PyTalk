@@ -3,7 +3,7 @@ chmod +x install-allstarlink-repository
 sudo ./install-allstarlink-repository
 sudo apt-get -y update
 sudo apt-get -y upgrade
-sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-gpiozero python-numpy libasound2-dev python-dev bluetooth bluez blueman pi-bluetooth autopoint autoconf libtool libcap-dev libdbus-1-dev libbluetooth-dev bluez libsbc-dev libudev-dev libspeex-dev libxml-parser-perl
+sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-gpiozero python-numpy libasound2-dev python-dev bluetooth bluez blueman pi-bluetooth autopoint autoconf libtool libcap-dev libdbus-1-dev libbluetooth-dev bluez libsbc-dev libudev-dev libspeex-dev libxml-parser-perl libxml-parser-perl
  
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py
