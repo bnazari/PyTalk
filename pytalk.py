@@ -100,16 +100,11 @@ def rxAudioStream():
     udp.close()
 
 def txAudioStream():
-    q.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-    q.setrate(8000)
-    q.setchannels(1)  
-
     udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     lastPtt = ptt
     seq = 0
     while True:
         try:
-            audio = q.read()
             if ptt != lastPtt:
                 usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
                 udp.sendto(usrp, (ipAddress, 34001))
@@ -117,6 +112,7 @@ def txAudioStream():
                 print 'PTT: {}'.format(ptt)
             lastPtt = ptt
             if ptt:
+                audio = q.read()
                 usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0) + audio
                 udp.sendto(usrp, (ipAddress, 34001))
                 print 'transmitting'
@@ -127,11 +123,23 @@ def txAudioStream():
 
 ptt = False     # toggle this to transmit (left up to you)
 ser = Serial('/dev/rfcomm0', 9600)
-# q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
 
 thread.start_new_thread( rxAudioStream, () )
-# thread.start_new_thread( txAudioStream, () )
+thread.start_new_thread( txAudioStream, () )
 
 while True:
     sleep(0.02)
-    print(ser.read(6))
+    ptt_button = ser.read(6))
+    if (ptt_button=='+PTT=P'):
+      ptt=True
+      q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
+      q.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+      q.setrate(8000)
+      q.setchannels(1) 
+      print("Transmit On")
+      ptt_button=''
+    if (ptt_button=='+PTT=R'):
+      ptt=False
+      q.close()
+      ptt_button=''
+      print("Transmit Off")     
