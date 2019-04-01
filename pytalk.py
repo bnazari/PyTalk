@@ -59,14 +59,6 @@ def rxAudioStream():
                 if (keyup != lastKey):
 #                    print('key' if keyup else 'unkey')
                     if keyup:
-                      if bt_up == False:
-                        p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
-                        p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-                        p.setrate(8000)
-                        p.setchannels(1)
-                        p.setperiodsize(160)
-                        bt_up = True
-                        print('Attach BT')
 #                       p.write(silence)
                       start_time = time()
                     if keyup == False:
@@ -79,8 +71,15 @@ def rxAudioStream():
                        idle_time = time()
                     lastKey = keyup
                 if (len(audio) == 320):
+                    if bt_up == False:
+                        p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
+                        p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+                        p.setrate(8000)
+                        p.setchannels(1)
+                        p.setperiodsize(160)
+                        bt_up = True
+                        print('Attach BT')
                     p.write(audio)
-                    bt_up=True
             if (type == 2): #metadata
                 audio = soundData[32:]
                 if ord(audio[0]) == 8:
