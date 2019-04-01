@@ -134,4 +134,4 @@ thread.start_new_thread( rxAudioStream, () )
 
 while True:
     sleep(0.02)
-    print(ser.read())
+    print(ser.read(6))
