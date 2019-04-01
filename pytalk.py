@@ -129,7 +129,7 @@ thread.start_new_thread( txAudioStream, () )
 
 while True:
     sleep(0.02)
-    ptt_button = ser.read(6))
+    ptt_button = ser.read(6)
     if (ptt_button=='+PTT=P'):
       ptt=True
       q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
