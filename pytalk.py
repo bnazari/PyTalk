@@ -83,7 +83,7 @@ def rxAudioStream():
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
                                                                     call, rxslot, tg, loss, time() - start_time)
-                    idle_time = time()
+                       idle_time = time()
                     lastKey = keyup
                 if (len(audio) == 320):
                     p.write(audio)
