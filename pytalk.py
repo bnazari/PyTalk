@@ -8,6 +8,7 @@ import thread
 import shlex
 import alsaaudio 
 from numpy import linspace,sin,pi,int16
+from serial import Serial
 
 def note(freq, len, amp=1, rate=8000):
  t = linspace(0,len,len*rate)
@@ -125,7 +126,7 @@ def txAudioStream():
 
 
 ptt = False     # toggle this to transmit (left up to you)
-
+ser = Serial('/dev/rfcomm0', 9600)
 # q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE, device='bluealsa:HCI=hci0,DEV=00:12:6F:11:F2:F2,PROFILE=sco')
 
 thread.start_new_thread( rxAudioStream, () )
@@ -133,3 +134,4 @@ thread.start_new_thread( rxAudioStream, () )
 
 while True:
     sleep(0.02)
+    print(ser.read())
