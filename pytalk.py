@@ -39,15 +39,8 @@ def rxAudioStream():
     rxslot = '0'
     while True:
        
-        try:
-          soundData, addr = udp.recvfrom(1024)
-        except socket.timeout:
-           if (bt_up==True):
-              if (time() - idle_time >=5):
-                 print('Release BT')
-                 p.close()
-                 bt_up=False
-           continue
+      try:
+        soundData, addr = udp.recvfrom(1024)
         if addr[0] != ipAddress:
             ipAddress = addr[0]
         if (soundData[0:4] == 'USRP'):
@@ -87,16 +80,22 @@ def rxAudioStream():
                     lastKey = keyup
                 if (len(audio) == 320):
                     p.write(audio)
+                    bt_up=True
             if (type == 2): #metadata
                 audio = soundData[32:]
                 if ord(audio[0]) == 8:
                     tg = (ord(audio[9]) << 16) + (ord(audio[10]) << 8) + ord(audio[11])
                     rxslot = ord(audio[12]);
                     call = audio[14:]
-
         else:
             print(soundData, len(soundData))
-
+      except socket.timeout:
+        if (bt_up==True):
+           if (time() - idle_time >=5):
+              print('Release BT')
+              p.close()
+              bt_up=False
+        continue
     udp.close()
 
 def txAudioStream():
