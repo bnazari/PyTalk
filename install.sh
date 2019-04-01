@@ -3,7 +3,7 @@ chmod +x install-allstarlink-repository
 sudo ./install-allstarlink-repository
 sudo apt-get -y update
 sudo apt-get -y upgrade
-sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-gpiozero python-numpy libasound2-dev python-dev bluetooth bluez blueman pi-bluetooth autopoint autoconf libtool libcap-dev libdbus-1-dev libbluetooth-dev bluez libsbc-dev libudev-dev libspeex-dev libxml-parser-perl libxml-parser-perl
+sudo apt-get  -y install raspberrypi-kernel-headers dvswitch python-gpiozero python-numpy libasound2-dev python-dev bluetooth bluez blueman pi-bluetooth expect pulseaudio pulseaudio-module-bluetooth
  
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 sudo python get-pip.py
@@ -15,7 +15,7 @@ chmod +x vol.sh
 sudo cp pytalk.service /etc/systemd/system/pytalk.service
 sudo cp MMDVM_Bridge.ini /opt/MMDVM_Bridge/MMDVM_Bridge.ini
 sudo cp Analog_Bridge.ini /opt/Analog_Bridge/Analog_Bridge.ini
-
+sudo mv raspi-blacklist.conf /etc/modprobe.d/raspi-blacklist.conf
 
 sudo systemctl enable mmdvm_bridge.service 
 sudo systemctl enable analog_bridge.service
