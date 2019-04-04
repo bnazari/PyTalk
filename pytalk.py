@@ -126,7 +126,7 @@ def txAudioStream():
                 seq = seq + 1
         except:
             print("overflow")
-        sleep(0.02)
+#        sleep(0.02)
 
 ptt = False     # toggle this to transmit (left up to you)
 ser = Serial('/dev/rfcomm0', 9600)
