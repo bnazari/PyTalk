@@ -61,14 +61,14 @@ def rxAudioStream():
                     if keyup:
 #                       p.write(silence)
                       start_time = time()
-                      print '{} {} {} {} {} {} {:.2f}s'.format(
+                      print '{} {} RX Start: {}'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
-                                                                    call, rxslot, tg, loss, time() - start_time)
+                                                                    call, tg)
                     if keyup == False:
 #                       if (time() - start_time)>=1.2:
 #                         tones();
-                       print '{} {} {} {} {} {} {:.2f}s'.format(
+                       print '{} {} RX Stop: {} {} {} {} {:.2f}s'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
                                                                     call, rxslot, tg, loss, time() - start_time)
@@ -82,8 +82,7 @@ def rxAudioStream():
                         p.setchannels(1)
                         p.setperiodsize(160)
                         bt_up = True
-                        print('Attach BT')
-                        idle_time = time()
+                        print('{} {} {}').format( strftime("%m/%d/%y", localtime(start_time)),strftime("%H:%M:%S", localtime(start_time)),('Attach BT'),idle_time = time())
                     p.write(audio)
             if (type == 2): #metadata
                 audio = soundData[32:]
@@ -96,7 +95,7 @@ def rxAudioStream():
       except socket.timeout:
         if (bt_up==True):
            if (time() - idle_time >=5):
-              print('Release BT')
+              print('{} {} {}').format( strftime("%m/%d/%y", localtime(start_time)),strftime("%H:%M:%S", localtime(start_time)),('Release BT'),idle_time = time())
               p.close()
               bt_up=False
         continue
