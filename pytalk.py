@@ -61,7 +61,7 @@ def rxAudioStream():
                     if keyup:
 #                       p.write(silence)
                       start_time = time()
-                      print '{} {} RX Start: {}'.format(
+                      print '{} {} RX Start: {} {}'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
                                                                     call, tg)
