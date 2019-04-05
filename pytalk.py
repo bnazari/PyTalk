@@ -61,6 +61,10 @@ def rxAudioStream():
                     if keyup:
 #                       p.write(silence)
                       start_time = time()
+                      print '{} {} {} {} {} {} {:.2f}s'.format(
+                                                                    strftime("%m/%d/%y", localtime(start_time)),
+                                                                    strftime("%H:%M:%S", localtime(start_time)),
+                                                                    call, rxslot, tg, loss, time() - start_time)
                     if keyup == False:
 #                       if (time() - start_time)>=1.2:
 #                         tones();
