@@ -82,7 +82,7 @@ def rxAudioStream():
                         p.setchannels(1)
                         p.setperiodsize(160)
                         bt_up = True
-                        print('{},{},{}').format( strftime("%m/%d/%y", localtime(start_time)),strftime("%H:%M:%S", localtime(start_time)),('Attach_BT'),idle_time = time())
+                        print('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Attach_BT'),idle_time = time())
                     p.write(audio)
             if (type == 2): #metadata
                 audio = soundData[32:]
@@ -95,7 +95,7 @@ def rxAudioStream():
       except socket.timeout:
         if (bt_up==True):
            if (time() - idle_time >=5):
-              print('{},{},{}').format( strftime("%m/%d/%y", localtime(start_time)),strftime("%H:%M:%S", localtime(start_time)),('Release_BT'),idle_time = time())
+              print('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Release_BT'),idle_time = time())
               p.close()
               bt_up=False
         continue
@@ -112,7 +112,7 @@ def txAudioStream():
                 usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
                 udp.sendto(usrp, (ipAddress, 34001))
                 seq = seq + 1
-                print '{},{},PTT,{}'.format(strftime("%m/%d/%y", localtime(start_time)),strftime("%H:%M:%S", localtime(start_time)),ptt)
+                print '{},{},PTT,{}'.format(strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),ptt)
                 bt_tx=0
             lastPtt = ptt
             if ptt:
