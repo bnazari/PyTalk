@@ -4,7 +4,7 @@ from time import time, sleep, clock, localtime, strftime
 from random import randint
 import socket
 import struct
-import thread
+import _thread
 import shlex
 import alsaaudio 
 from numpy import linspace,sin,pi,int16
@@ -43,7 +43,7 @@ def rxAudioStream():
         soundData, addr = udp.recvfrom(1024)
         if addr[0] != ipAddress:
             ipAddress = addr[0]
-        if (soundData[0:4] == 'USRP'):
+        if (soundData[0:4].decode('utf-8') == 'USRP'):
             eye = soundData[0:4]
             seq, = struct.unpack(">i", soundData[4:8])
             memory, = struct.unpack(">i", soundData[8:12])
@@ -61,17 +61,17 @@ def rxAudioStream():
                     if keyup:
 #                       p.write(silence)
                       start_time = time()
-                      print '{},{},RX_Start,{},{}'.format(
+                      print('{},{},RX_Start,{},{}'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
-                                                                    call, tg)
+                                                                    call, tg))
                     if keyup == False:
 #                       if (time() - start_time)>=1.2:
 #                         tones();
-                       print '{},{},RX_Stop,{},{},{},{},{:.2f}s'.format(
+                       print('{},{},RX_Stop,{},{},{},{},{:.2f}s'.format(
                                                                     strftime("%m/%d/%y", localtime(start_time)),
                                                                     strftime("%H:%M:%S", localtime(start_time)),
-                                                                    call, rxslot, tg, loss, time() - start_time)
+                                                                    call, rxslot, tg, loss, time() - start_time))
                        idle_time = time()
                     lastKey = keyup
                 if (len(audio) == 320):
@@ -82,20 +82,20 @@ def rxAudioStream():
                         p.setchannels(1)
                         p.setperiodsize(160)
                         bt_up = True
-                        print('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Attach_BT'),idle_time = time())
+                        print(('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Attach_BT'),idle_time = time()))
                     p.write(audio)
             if (type == 2): #metadata
                 audio = soundData[32:]
-                if ord(audio[0]) == 8:
-                    tg = (ord(audio[9]) << 16) + (ord(audio[10]) << 8) + ord(audio[11])
-                    rxslot = ord(audio[12]);
-                    call = audio[14:]
+                if audio[0] == 8:
+                    tg = (audio[9] << 16) + (audio[10] << 8) + audio[11]
+                    rxslot = audio[12];
+                    call = audio[14:].decode('utf-8')
         else:
-            print(soundData, len(soundData))
+            print((soundData, len(soundData)))
       except socket.timeout:
         if (bt_up==True):
            if (time() - idle_time >=5):
-              print('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Release_BT'),idle_time = time())
+              print(('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Release_BT'),idle_time = time()))
               p.close()
               bt_up=False
         continue
@@ -109,10 +109,10 @@ def txAudioStream():
     while True:
         try: 
             if ptt != lastPtt:
-                usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
+                usrp = 'USRP'.encode() + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
                 udp.sendto(usrp, (ipAddress, 34001))
                 seq = seq + 1
-                print '{},{},PTT,{}'.format(strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),ptt)
+                print('{},{},PTT,{}'.format(strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),ptt))
                 bt_tx=0
             lastPtt = ptt
             if ptt:
@@ -124,7 +124,7 @@ def txAudioStream():
                   q.setperiodsize(160)
                   bt_tx=1
                 audio = q.read()
-                usrp = 'USRP' + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0) + audio[1]
+                usrp = 'USRP'.encode() + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0) + audio[1]
                 udp.sendto(usrp, (ipAddress, 34001))
                 seq = seq + 1
         except:
@@ -134,12 +134,12 @@ def txAudioStream():
 ptt = False     # toggle this to transmit (left up to you)
 ser = Serial('/dev/rfcomm0', 9600)
 
-thread.start_new_thread( rxAudioStream, () )
-thread.start_new_thread( txAudioStream, () )
+_thread.start_new_thread( rxAudioStream, () )
+_thread.start_new_thread( txAudioStream, () )
 ptt_button=''
 while True:
     sleep(0.02)
-    ptt_button = ser.read(6)
+    ptt_button = ser.read(6).decode('utf-8')
     if (ptt_button=='+PTT=P'):
       ptt=True
       q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
