@@ -9,6 +9,51 @@ import shlex
 import alsaaudio 
 from numpy import linspace,sin,pi,int16
 from serial import Serial
+import logging
+from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s,%(levelname)s,%(message)s')
+
+fh = logging.FileHandler('pytalk.log')
+fh.setLevel(logging.INFO)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
+
+
+
+
+clients = []
+def send_websocket(message):
+        for client in clients:
+            client.sendMessage(u'DATA,'+message)
+
+class PyTalkClient(WebSocket):
+   def handleMessage(self):
+      for client in clients:
+         if client != self:
+            client.sendMessage(u'MESSAGE,' + self.address[0] + u',' + self.data)
+
+   def handleConnected(self):
+      logger.info('Websocket,{},connected'.format(self.address))
+      for client in clients:
+         client.sendMessage(u'MESSAGE,' + self.address[0] + u',connected')
+      clients.append(self)
+
+   def handleClose(self):
+      clients.remove(self)
+      logger.info('Websocket,{},close'.format(self.address))
+      for client in clients:
+         client.sendMessage(u'MESSAGE,' +self.address[0] + u',disconnected')
+
+server = SimpleWebSocketServer('', 8000,PyTalkClient)
+_thread.start_new_thread( server.serveforever, () )
 
 def note(freq, len, amp=1, rate=8000):
  t = linspace(0,len,len*rate)
@@ -21,8 +66,8 @@ silence = chr(0)* 32000
 
 def rxAudioStream():
     global ipAddress
-    print('Start audio thread')
-    
+    logger.info('Start DMR')
+
     def tones():
        p.write(note(900, .2, amp=1000, rate=8000))
        p.write(note(600, .2, amp=1000, rate=8000))
@@ -55,35 +100,33 @@ def rxAudioStream():
             audio = soundData[32:]
             if (type == 0): # voice
                 audio = soundData[32:]
-#                print(eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, len(audio), len(soundData))
+                logger.debug('%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,',eye, seq, memory, keyup, talkgroup, type, mpxid, reserved, len(audio), len(soundData))
                 if (keyup != lastKey):
-#                    print('key' if keyup else 'unkey')
                     if keyup:
-#                       p.write(silence)
-                      start_time = time()
-                      print('{},{},RX_Start,{},{}'.format(
-                                                                    strftime("%m/%d/%y", localtime(start_time)),
-                                                                    strftime("%H:%M:%S", localtime(start_time)),
-                                                                    call, tg))
+                       if bt_up == False:					
+                         p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
+                         p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
+                         p.setrate(8000)
+                         p.setchannels(1)
+                         p.setperiodsize(160)
+                         bt_up = True
+                         logger.info('Attach_BT')
+                         send_websocket('Attach_BT')
+                       p.write(silence)
+                       start_time = time()
+                       message='RX_Start,{0},{1},0.0'.format(call, tg)
+                       logger.info(message)
+                       send_websocket(message)
                     if keyup == False:
-#                       if (time() - start_time)>=1.2:
+#                      if (time() - start_time)>=1.2:
 #                         tones();
-                       print('{},{},RX_Stop,{},{},{},{},{:.2f}s'.format(
-                                                                    strftime("%m/%d/%y", localtime(start_time)),
-                                                                    strftime("%H:%M:%S", localtime(start_time)),
-                                                                    call, rxslot, tg, loss, time() - start_time))
-                       idle_time = time()
+                       message='RX_Stop,{0},{1},{2:.2f}'.format(call,tg,(time() - start_time))
+                       logger.info(message)
+                       send_websocket(message)                      
                     lastKey = keyup
                 if (len(audio) == 320):
-                    if bt_up == False:
-                        p = alsaaudio.PCM(type=alsaaudio.PCM_PLAYBACK)
-                        p.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-                        p.setrate(8000)
-                        p.setchannels(1)
-                        p.setperiodsize(160)
-                        bt_up = True
-                        print(('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Attach_BT'),idle_time = time()))
                     p.write(audio)
+                idle_time = time()
             if (type == 2): #metadata
                 audio = soundData[32:]
                 if audio[0] == 8:
@@ -95,7 +138,8 @@ def rxAudioStream():
       except socket.timeout:
         if (bt_up==True):
            if (time() - idle_time >=5):
-              print(('{},{},{}').format( strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),('Release_BT'),idle_time = time()))
+              logger.info('Detach_BT')
+              send_websocket('Detach_BT')
               p.close()
               bt_up=False
         continue
@@ -112,23 +156,26 @@ def txAudioStream():
                 usrp = 'USRP'.encode() + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0)
                 udp.sendto(usrp, (ipAddress, 34001))
                 seq = seq + 1
-                print('{},{},PTT,{}'.format(strftime("%m/%d/%y", localtime(time())),strftime("%H:%M:%S", localtime(time())),ptt))
-                bt_tx=0
-            lastPtt = ptt
-            if ptt:
-                if bt_tx==0:
+                message='PTT,{}'.format(ptt)
+                logger.info(message)
+                send_websocket(message)
+                if ptt==True:
                   q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
                   q.setformat(alsaaudio.PCM_FORMAT_S16_LE)
                   q.setrate(8000)
                   q.setchannels(1)
                   q.setperiodsize(160)
                   bt_tx=1
+                if ptt==False:
+                   q.close()
+            lastPtt = ptt
+            if ptt:
                 audio = q.read()
                 usrp = 'USRP'.encode() + struct.pack('>iiiiiii',seq, 0, ptt, 0, 0, 0, 0) + audio[1]
                 udp.sendto(usrp, (ipAddress, 34001))
                 seq = seq + 1
         except:
-            print("overflow")
+            logger.warning('Overflow')
         sleep(0.02)
 
 ptt = False     # toggle this to transmit (left up to you)
@@ -142,12 +189,8 @@ while True:
     ptt_button = ser.read(6).decode('utf-8')
     if (ptt_button=='+PTT=P'):
       ptt=True
-      q = alsaaudio.PCM(type=alsaaudio.PCM_CAPTURE)
-      q.setformat(alsaaudio.PCM_FORMAT_S16_LE)
-      q.setrate(8000)
-      q.setchannels(1) 
       ptt_button=''
     if (ptt_button=='+PTT=R'):
+      sleep(.3)
       ptt=False
-      q.close()
       ptt_button=''
