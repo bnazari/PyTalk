@@ -9,7 +9,8 @@ PyTalk service relies on /home/pi/PyTalk directory so consider running command b
 Installation:
   - git clone https://github.com/bnazari/PyTalk.git
   - cd PyTalk
-  - upate **MMDVM_Bridge.ini** with your callsing, DMR ID and password (if you have **Hotspot Security** enabled)
+  - update **MMDVM_Bridge.ini** with your callsing, DMR ID and password (if you have **Hotspot Security** enabled)
+  - in **Analog_Bridge.ini** update **gatewayDmrId** and **repeaterID** with your DMR ID and repeater/hotspot DMR ID, change **txTg** to destination talkgroup number (i.e. 31000 for Brandmeister parrot)
   - chmod +x install.sh
   - ./install.sh
 
